@@ -1,0 +1,101 @@
+version: "3.9"
+
+services:
+
+  # ── Vector database ─────────────────────────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:v1.9.2
+    container_name: fa_qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+  # ── Object storage ───────────────────────────────────────────────────────────
+  minio:
+    image: minio/minio:RELEASE.2024-04-18T19-09-19Z
+    container_name: fa_minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+  # ── TimescaleDB (PostgreSQL + time-series extension) ─────────────────────────
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: fa_timescaledb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: semiconductor_telemetry
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./infra/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  # ── MQTT broker ──────────────────────────────────────────────────────────────
+  mosquitto:
+    image: eclipse-mosquitto:2.0.18
+    container_name: fa_mosquitto
+    ports:
+      - "1883:1883"
+      - "9883:9883"
+    volumes:
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+    restart: unless-stopped
+
+  # ── FA backend API ────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fa_api
+    ports:
+      - "8000:8000"
+    env_file: .env
+    depends_on:
+      - qdrant
+      - minio
+      - timescaledb
+      - mosquitto
+    volumes:
+      - ./models:/app/models
+      - ./reports/output:/app/reports/output
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # ── Streamlit frontend ────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: fa_frontend
+    ports:
+      - "8501:8501"
+    env_file: .env
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  qdrant_data:
+  minio_data:
+  timescale_data:
+  mosquitto_data:
