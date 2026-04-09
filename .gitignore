@@ -205,3 +205,76 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# =============================================================================
+# SemiFA project-specific exclusions
+# =============================================================================
+
+# Environment — never commit real secrets
+.env
+.env.local
+.env.production
+
+# Model weights — too large for git, download via HuggingFace
+models/
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+
+# Raw downloaded datasets — reproduced via scripts/download_*.py
+data/wm811k_raw/
+data/mixedwm38_raw/
+data/synthetic_dataset/images/
+data/wm811k/images/
+data/mixedwm38/images/
+
+# Generated FA report outputs
+reports/output/
+colab/reports/
+*.pdf
+# Re-allow tracked PDFs (paper figures and compiled paper)
+!paper/semifa_arxiv.pdf
+!paper/figures/*.pdf
+
+# LaTeX build artifacts
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+
+# Personal / non-public files
+Shivam_Resume_final.pdf
+Kaggle_token.png
+HugguingFaceLLavaModel.png
+CLAUDE.md
+Publication_Strategy_Guide.pdf
+generate_publication_guide.py
+PROJECT.md
+DEVELOPER_GUIDE.md
+step7_output.txt
+semifa_dataset.tar.gz
+
+# Intermediate / superseded Colab notebooks (keep only the final executed one)
+colab/qlora_finetune_colab.ipynb
+colab/op_qlora_finetune_colab.ipynb
+colab/Output_run_on_colab.ipynb
+colab/Fianl_notebook_Output_op_qlora_finetune_colab.ipynb
+colab/run_on_colab.ipynb
+
+# Superseded experiment results (different data split from paper; replaced by encoder_comparison_results.json)
+experiments/dinov2_accuracy_results.json
+
+# Qdrant local storage (if run locally)
+qdrant_storage/
+
+# MinIO local data
+minio_data/
+
+# Prometheus data
+prometheus_data/
