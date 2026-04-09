@@ -101,7 +101,7 @@ Wafer bin map (WBM) pattern recognition has received sustained attention since t
 Saqlain et al.~\cite{saqlain2020voting} combined multiple CNN architectures with a voting ensemble, achieving 96\% accuracy on the reduced WM-811K subset.
 Shim et al.~\cite{shim2020active} applied active learning to minimize labeling effort for new defect types.
 More recently, the MixedWM38 dataset~\cite{wang2020mixedwm38} extended WBM classification to 38 mixed-type defect patterns, including compound classes formed by superimposing multiple single-type defect patterns.
-Nakazawa and Kulkarni~\cite{nakazawa2018anomaly} employed variational autoencoders for unsupervised anomaly detection on wafer maps.
+Nakazawa and Kulkarni~\cite{nakazawa2018anomaly} employed convolutional neural networks for wafer map defect classification and image retrieval.
 
 These methods treat wafer defect classification as a standalone pattern recognition problem.
 None produce natural language reports, none incorporate equipment telemetry, and none perform root cause analysis.
@@ -110,7 +110,7 @@ None produce natural language reports, none incorporate equipment telemetry, and
 \subsection{Vision-Language Models for Industrial Inspection}
 
 Vision-language models have been applied to industrial quality inspection in recent work.
-Jeong et al.~\cite{jeong2023winclip} proposed WinCLIP for zero-/few-shot anomaly detection using CLIP~\cite{radford2021clip} embeddings, demonstrating strong transfer to manufacturing surface defect localisation.
+Jeong et al.~\cite{jeong2023winclip} proposed WinCLIP for zero-/few-shot anomaly detection using CLIP~\cite{radford2021clip} embeddings, demonstrating strong transfer to manufacturing surface defect localization.
 Li et al.~\cite{li2024mllm} demonstrated that vision-language pre-training can be extended to specialized domains, though the lack of domain-specific training data remains the primary bottleneck for industrial applications.
 AnomalyGPT~\cite{gu2024anomalygpt} combined a frozen visual encoder with an LLM for industrial anomaly detection with textual explanation, demonstrating that VLMs can articulate defect characteristics in natural language.
 However, AnomalyGPT operates on generic industrial images (MVTec~\cite{bergmann2019mvtec}) and does not address semiconductor-specific defect morphology, equipment protocols, or report structures.
@@ -265,7 +265,7 @@ All FA narratives in \semidataset{} are therefore authored by the first author, 
 The three sources are:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Procedural synthesis (3 classes, 340 images).}
+    \item \textbf{Procedural synthesis (3 classes, 318 images).}
     We implement a Python/NumPy procedural renderer that places die-level pass/fail labels on a $256 \times 256$ wafer grid.
     Defect spatial distributions are parameterized per class: \texttt{scratch} uses a thin linear band (random angle, 1--3 die wide, spanning 60--90\% of wafer diameter); \texttt{particle\_contamination} uses a 2D Poisson point process with spatially varying intensity to mimic contamination events; \texttt{edge\_crack} places a localised arc of failures in the outer 8--12\% of the wafer radius.
     Renderer parameters (band width, angle, density) are randomised within physically plausible ranges to create intra-class diversity.
@@ -278,7 +278,7 @@ The three sources are:
     We intentionally limit the subset rather than using all available images because \semidataset{} is a \textit{VLM instruction-tuning dataset}, not a classification benchmark: each image must be paired with a manually written FA narrative, which bounds the feasible annotation volume.
     \Cref{tab:wm811k_mapping} shows the label taxonomy mapping.
 
-    \item \textbf{MixedWM38~\cite{wang2020mixedwm38} (1 class, 140 images).}
+    \item \textbf{MixedWM38~\cite{wang2020mixedwm38} (1 class, 40 images).}
     We sample single-type \textit{Edge-Ring} images from MixedWM38 to supplement \texttt{ring\_pattern}, which is underrepresented in WM-811K relative to other classes.
     Mixed-type patterns are excluded to maintain a single-label classification setting.
 \end{enumerate}
@@ -304,7 +304,7 @@ The three sources are:
     \end{tabular}
 \end{table}
 
-\Cref{tab:source_counts} summarises the image counts per source and class.
+\Cref{tab:source_counts} summarizes the image counts per source and class.
 
 \begin{table}[t]
     \centering
@@ -447,11 +447,11 @@ CLIP ViT-B/32~\cite{radford2021clip} is evaluated zero-shot using class-specific
 CLIP achieves only 20.7\% accuracy (Macro F1 = 0.173) on \semidataset{} --- just above random chance (11.1\%) --- confirming that contrastive pre-training on natural images does not transfer to semiconductor wafer map imagery without domain adaptation.
 ResNet-50 fine-tuned on \semidataset{} achieves 82.9\% (Macro F1 = 0.839) using 23.5M trainable parameters.
 The DINOv2 frozen encoder with a lightweight MLP head achieves 90.0\% (Macro F1 = 0.898) using only 214K trainable parameters --- a 7.1 percentage point improvement over ResNet-50 with 110$\times$ fewer parameters, consistent with DINOv2's demonstrated data-efficient transfer to specialised visual domains~\cite{oquab2024dinov2}.
-The dedicated DINOv2 accuracy analysis (Table~\ref{tab:per_class}) reports 92.1\% as the result of the full training run in the original Colab notebook; the 2.1 point difference reflects normal variance in MLP random initialisation across runs.
+The dedicated DINOv2 accuracy analysis (Table~\ref{tab:classification}) reports 92.1\% as the result of the full training run in the original Colab notebook; the 2.1 point difference reflects normal variance in MLP random initialisation across runs.
 
 \begin{table}[t]
     \centering
-    \caption{Comparison of visual encoder approaches on \semidataset{} validation split (140 images). All models trained and evaluated on identical data splits; no literature-reported numbers are used.}
+    \caption{Comparison of visual encoder approaches on \semidataset{} validation split (140 images). All models trained and evaluated on identical data splits.}
     \label{tab:encoder_comparison}
     \begin{tabular}{@{}lccc@{}}
         \toprule
@@ -470,7 +470,7 @@ The dedicated DINOv2 accuracy analysis (Table~\ref{tab:per_class}) reports 92.1\
 
 \begin{table}[t]
     \centering
-    \caption{Per-node latency breakdown (median of 3 runs, NVIDIA A100-SXM4-40\,GB, PyTorch 2.10, LLaVA-1.6 in 4-bit NF4).}
+    \caption{Per-node latency breakdown (median of 3 runs, NVIDIA A100-SXM4-40\,GB, PyTorch 2.1.0, LLaVA-1.6 in 4-bit NF4).}
     \label{tab:latency}
     \begin{tabular}{@{}lcc@{}}
         \toprule
@@ -493,23 +493,27 @@ The RootCauseAnalyzer (24.6\%, 11.9\,s) ranks second due to the multi-hypothesis
 The ReportGenerator is the least expensive node (5.2\%, 2.5\,s) as it performs deterministic dictionary assembly and PDF rendering without model inference.
 
 The latency breakdown reveals that approximately 95\% of pipeline time is spent on LLaVA inference across the four agentic nodes.
-This suggests that future optimisation should focus on inference acceleration (e.g., speculative decoding, continuous batching, or parallelising independent agent nodes) rather than data retrieval or report assembly.
+This suggests that future optimization should focus on inference acceleration (e.g., speculative decoding, continuous batching, or parallelising independent agent nodes) rather than data retrieval or report assembly.
 
 \subsection{Multi-Modal Fusion Ablation}
 
 We conduct an automated ablation study to quantify the independent contribution of each input modality to root cause hypothesis quality.
-For 5 representative validation cases spanning five defect classes, we evaluate the RootCauseAnalyzer under four conditions:
-(1)~\textbf{Full \semifa{}}: visual description + SECS/GEM telemetry + Qdrant retrieval (top-5 similar defects);
-(2)~\textbf{No Retrieval}: visual description + telemetry only (Qdrant query disabled);
+The study uses 5 representative cases spanning five defect classes (scratch, edge\_crack, particle\_contamination, ring\_pattern, center\_cluster).
+Equipment telemetry context consists of representative simulated SECS/GEM alarm logs --- timestamp-tagged parameter readings and alarm events formatted according to the SECS-II message structure~\cite{semi_e5} --- consistent with the system's default simulator mode (\texttt{SECSGEM\_SIM=true}).
+Similarly, historical retrieval context consists of representative prior-defect records with cosine similarity scores, reflecting the format produced by the Qdrant-backed retrieval pipeline.
+This design isolates the effect of each modality on LLaVA prompt quality independently of live infrastructure availability.
+We evaluate the RootCauseAnalyzer under four conditions:
+(1)~\textbf{Full \semifa{}}: visual description + simulated SECS/GEM telemetry + retrieval context (top-5 similar defects);
+(2)~\textbf{No Retrieval}: visual description + telemetry only (retrieval context omitted);
 (3)~\textbf{No Telemetry}: visual description + retrieval only (telemetry context omitted);
-(4)~\textbf{Baseline}: visual description only (image-only context, no telemetry, no retrieval).
+(4)~\textbf{Baseline}: visual description only (no telemetry, no retrieval).
 
-Each generated root cause hypothesis is scored by GPT-4o~\cite{openai2023gpt4v} as an automated judge~\cite{zheng2023judging} on three criteria, each rated 1--5: \textit{specificity} (references to concrete equipment state or identifiers), \textit{actionability} (clarity and immediacy of corrective guidance), and \textit{grounding} (logical consistency between evidence and hypothesis).
+Each generated root cause hypothesis is scored by GPT-4o~\cite{openai2024gpt4o} as an automated judge~\cite{zheng2023judging} on three criteria, each rated 1--5: \textit{specificity} (references to concrete equipment state or identifiers), \textit{actionability} (clarity and immediacy of corrective guidance), and \textit{grounding} (logical consistency between evidence and hypothesis).
 A composite score is computed as the mean of the three dimensions.
 
 \Cref{tab:retrieval_ablation} reports mean scores across 5 cases.
 The full multi-modal system achieves a composite score of 3.60, a $+$0.86 improvement over the description-only baseline (2.74).
-Removing telemetry reduces the composite by 0.27 points (3.60 $\rightarrow$ 3.33), confirming that SECS/GEM alarm history and equipment parameter drift are the primary drivers of hypothesis specificity and grounding.
+Removing telemetry reduces the composite by 0.27 points (3.60 $\rightarrow$ 3.33), confirming that equipment alarm history and parameter drift signals --- of the kind produced by SECS/GEM-instrumented equipment --- are the primary drivers of hypothesis specificity and grounding.
 Removing retrieval while retaining telemetry yields a marginally higher composite (3.73) in this 5-case study, an artifact of retrieved historical context slightly reducing actionability scores; specificity and grounding remain identical to the full system.
 These results indicate that \textbf{equipment telemetry is the more load-bearing modality} in the current system: SECS/GEM signals provide the concrete equipment-state grounding that distinguishes specific root cause reasoning from generic domain knowledge.
 Retrieval augmentation primarily benefits cases where historical precedent exists in the Qdrant knowledge base, and its contribution is expected to increase as the self-improving corpus grows with each completed FA run.
@@ -574,8 +578,8 @@ We executed QLoRA fine-tuning (4-bit NF4, LoRA rank $r=16$, $\alpha=32$) of LLaV
 Training loss collapsed from 0.211 at step 50 to $6.6 \times 10^{-5}$ by the end of epoch 1, with the final mean train loss of $1.46 \times 10^{-2}$ indicating severe overfitting on the small dataset.
 Qualitative inspection of held-out validation responses confirmed that the fine-tuned model produced outputs that deviated significantly from the expected FA report structure, with responses either regressing to memorised training templates or generating structurally malformed reports on unseen defect images.
 
-This outcome establishes a clear empirical boundary: \semidataset{} with 790 training examples is sufficient to train a lightweight DINOv2 classification head (200K parameters, 92.1\% accuracy) but insufficient to fine-tune a 7B-parameter VLM via QLoRA without substantial overfitting.
-Prior domain-adaptation work on comparably sized VLMs (LLaVA-Med~\cite{li2024mllm}, GeoChat) has consistently required 5{,}000--100{,}000 domain-specific instruction pairs to achieve stable fine-tuning.
+This outcome establishes a clear empirical boundary: \semidataset{} with 790 training examples is sufficient to train a lightweight DINOv2 classification head (214K parameters, 92.1\% accuracy) but insufficient to fine-tune a 7B-parameter VLM via QLoRA without substantial overfitting.
+Prior domain-adaptation work on comparably sized VLMs (LLaVA-Med~\cite{li2023llava_med}, GeoChat~\cite{kuckreja2024geochat}) has consistently required 5{,}000--100{,}000 domain-specific instruction pairs to achieve stable fine-tuning.
 This finding motivates the \semidataset{}-1K+ expansion --- a target of at least 5{,}000 annotated image-FA report pairs through real fab image acquisition --- identified as the primary direction for future work.
 The base model occasionally uses generic industrial terminology (e.g., ``surface anomaly'') where domain-specific terms (e.g., ``edge-bead removal residue,'' ``CMP dishing'') would be more precise; quantitative evaluation of terminology accuracy improvement after fine-tuning on a sufficiently large corpus will be reported in a follow-up study.
 
@@ -735,6 +739,15 @@ ReportLab, Inc., ``ReportLab: PDF generation in Python,'' 2024. [Online]. Availa
 
 \bibitem{fastapi2024}
 S. Ram\'irez, ``FastAPI: Modern, fast (high-performance), web framework for building APIs,'' 2024. [Online]. Available: \url{https://fastapi.tiangolo.com}
+
+\bibitem{openai2024gpt4o}
+OpenAI, ``GPT-4o system card,'' OpenAI, Tech. Rep., May 2024. [Online]. Available: \url{https://openai.com/index/gpt-4o-system-card}
+
+\bibitem{li2023llava_med}
+C. Li, C. Wong, S. Zhang, N. Usuyama, H. Liu, J. Yang, T. Naumann, H. Poon, and J. Gao, ``LLaVA-Med: Training a large language-and-vision assistant for biomedicine in one day,'' in \textit{Proc. Advances in Neural Information Processing Systems (NeurIPS)}, vol.~36, 2024.
+
+\bibitem{kuckreja2024geochat}
+K. Kuckreja, M. S. Danish, M. Naseer, A. Khan, F. S. Khan, and M. H. Daniyar, ``GeoChat: Grounded large vision-language model for remote sensing,'' in \textit{Proc. IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, 2024, pp.~27831--27840.
 
 \end{thebibliography}
 
