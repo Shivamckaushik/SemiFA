@@ -194,18 +194,29 @@ def run_dinov2(
     Xt = torch.tensor(X_train).to(DEVICE)
     yt = torch.tensor(y_train).to(DEVICE)
 
-    print(f"  Training MLP ({epochs} epochs)...")
+    # Mini-batch training — matches original Colab training setup
+    dataset = torch.utils.data.TensorDataset(
+        torch.tensor(X_train), torch.tensor(y_train)
+    )
+    loader = torch.utils.data.DataLoader(dataset, batch_size=64, shuffle=True)
+
+    print(f"  Training MLP ({epochs} epochs, mini-batch 64)...")
     for epoch in range(1, epochs + 1):
         mlp.train()
-        opt.zero_grad()
-        loss = crit(mlp(Xt), yt)
-        loss.backward()
-        opt.step()
+        for X_batch, y_batch in loader:
+            X_batch, y_batch = X_batch.to(DEVICE), y_batch.to(DEVICE)
+            opt.zero_grad()
+            loss = crit(mlp(X_batch), y_batch)
+            loss.backward()
+            opt.step()
         scheduler.step()
         if epoch % 10 == 0:
+            mlp.eval()
             with torch.no_grad():
-                acc = (mlp(Xt).argmax(1) == yt).float().mean().item()
-            print(f"    epoch {epoch:3d}/{epochs}  loss={loss.item():.4f}  train_acc={acc:.1%}")
+                Xall = torch.tensor(X_train).to(DEVICE)
+                yall = torch.tensor(y_train).to(DEVICE)
+                acc = (mlp(Xall).argmax(1) == yall).float().mean().item()
+            print(f"    epoch {epoch:3d}/{epochs}  train_acc={acc:.1%}")
 
     # Evaluate on val
     mlp.eval()
@@ -403,8 +414,14 @@ def run_clip_zeroshot(val_records: list[dict]) -> dict:
         padding=True,
     ).to(DEVICE)
     with torch.no_grad():
-        text_features = clip_model.get_text_features(**text_inputs)
-        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+        # Use model components directly — get_text_features() returns
+        # BaseModelOutputWithPooling in some transformers versions
+        text_out = clip_model.text_model(
+            input_ids=text_inputs['input_ids'],
+            attention_mask=text_inputs['attention_mask'],
+        )
+        text_features = clip_model.text_projection(text_out.pooler_output)
+        text_features = text_features / text_features.norm(p=2, dim=-1, keepdim=True)
 
     all_preds, all_labels = [], []
     batch_size = 32
@@ -419,10 +436,11 @@ def run_clip_zeroshot(val_records: list[dict]) -> dict:
                 valid.append(r)
         if not imgs:
             continue
-        img_inputs = clip_proc(images=imgs, return_tensors="pt", padding=True).to(DEVICE)
+        img_inputs = clip_proc(images=imgs, return_tensors="pt").to(DEVICE)
         with torch.no_grad():
-            img_features = clip_model.get_image_features(**img_inputs)
-            img_features = img_features / img_features.norm(dim=-1, keepdim=True)
+            img_out = clip_model.vision_model(pixel_values=img_inputs['pixel_values'])
+            img_features = clip_model.visual_projection(img_out.pooler_output)
+            img_features = img_features / img_features.norm(p=2, dim=-1, keepdim=True)
             sims = (img_features @ text_features.T)
             preds = sims.argmax(dim=-1).cpu().numpy()
         for pred, rec in zip(preds, valid):
@@ -502,11 +520,15 @@ def main():
     )
     parser.add_argument(
         "--skip-clip", action="store_true",
-        help="Skip CLIP zero-shot evaluation (saves time if not needed)"
+        help="Skip CLIP zero-shot evaluation"
     )
     parser.add_argument(
         "--skip-resnet", action="store_true",
-        help="Skip ResNet-50 fine-tuning (fastest run: DINOv2 + CLIP only)"
+        help="Skip ResNet-50 fine-tuning"
+    )
+    parser.add_argument(
+        "--skip-dinov2", action="store_true",
+        help="Skip DINOv2+MLP (use when re-running only CLIP or ResNet-50)"
     )
     args = parser.parse_args()
 
@@ -538,7 +560,10 @@ def main():
     results = []
 
     # 1. DINOv2
-    results.append(run_dinov2(train_records, val_records, epochs=args.epochs))
+    if not args.skip_dinov2:
+        results.append(run_dinov2(train_records, val_records, epochs=args.epochs))
+    else:
+        print("\n[1/3] DINOv2+MLP  — SKIPPED (--skip-dinov2)")
 
     # 2. ResNet-50
     if not args.skip_resnet:
