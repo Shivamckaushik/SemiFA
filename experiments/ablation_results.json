@@ -1,0 +1,283 @@
+{
+  "experiment": "SemiFA ablation study \u2014 Root Cause Analyzer",
+  "judge_model": "gpt-4o",
+  "generator_model": "gpt-4o",
+  "n_cases": 5,
+  "conditions": [
+    {
+      "key": "full",
+      "label": "Full SemiFA (Retrieval + Telemetry)"
+    },
+    {
+      "key": "no_retrieval",
+      "label": "No Retrieval (Telemetry only)"
+    },
+    {
+      "key": "no_telemetry",
+      "label": "No Telemetry (Retrieval only)"
+    },
+    {
+      "key": "baseline",
+      "label": "Baseline (Description only)"
+    }
+  ],
+  "aggregated": {
+    "full": {
+      "specificity": 4.2,
+      "actionability": 2.4,
+      "grounding": 4.2,
+      "composite": 3.6
+    },
+    "no_retrieval": {
+      "specificity": 4.2,
+      "actionability": 2.8,
+      "grounding": 4.2,
+      "composite": 3.73
+    },
+    "no_telemetry": {
+      "specificity": 3.8,
+      "actionability": 2.2,
+      "grounding": 4.0,
+      "composite": 3.33
+    },
+    "baseline": {
+      "specificity": 3.0,
+      "actionability": 2.2,
+      "grounding": 3.0,
+      "composite": 2.74
+    }
+  },
+  "per_case": [
+    {
+      "case_id": "TC-01",
+      "defect_class": "scratch",
+      "conditions": {
+        "full": {
+          "label": "Full SemiFA (Retrieval + Telemetry)",
+          "ai_output": "HYPOTHESIS 1: End-effector contact during wafer transfer due to vacuum loss\nEVIDENCE: The recent equipment logs indicate an alarm for low vacuum pressure (55mbar) on the end effector, which is consistent with a vacuum loss event. Historically, similar defects have been attributed to end-effector contact during wafer transfer when vacuum loss occurs, leading to scratches.\n\nHYPOTHESIS 2: Chuck particle contamination causing mechanical contact\nEVIDENCE: Historically similar defects have been linked to chuck particle contamination, which can cause mechanical contact and result in scratches. Although there is no direct evidence of contamination in the recent logs, the high chuck pressure alarm (2.8bar) could suggest potential issues with the chuck that might lead to contamination or improper handling.\n\nHYPOTHESIS 3: Excessive wafer handler speed causing mechanical contact\nEVIDENCE: The wafer handler speed recorded in the logs is 0.45m/s, which might be higher than optimal for safe wafer handling. While there is no direct alarm for speed, excessive speed can lead to mechanical contact and scratches, especially if combined with other factors like vacuum loss.\n\nROOT CAUSE SUMMARY: The most likely root cause of the scratch defect is end-effector contact during wafer transfer due to a vacuum loss event, as indicated by the low vacuum alarm. Secondary considerations include potential chuck particle contamination and excessive wafer handler speed, which could exacerbate the issue. Immediate attention to the vacuum system and chuck condition is recommended to prevent recurrence.",
+          "specificity": 4,
+          "actionability": 3,
+          "grounding": 4,
+          "composite": 3.67,
+          "rationale": "The report references specific process stages and equipment parameters, provides general categories of fixes, and most claims are grounded in evidence with minor inference.",
+          "elapsed_s": 6.9
+        },
+        "no_retrieval": {
+          "label": "No Retrieval (Telemetry only)",
+          "ai_output": "HYPOTHESIS 1: High chuck pressure causing wafer slippage\nEVIDENCE: The equipment log indicates an alarm for high chuck pressure (2.8 bar) shortly before the defect was observed. Excessive pressure can lead to wafer slippage or movement during processing, potentially causing a scratch as the wafer shifts against the chuck or other components.\n\nHYPOTHESIS 2: Insufficient vacuum holding force on the end effector\nEVIDENCE: The log shows an alarm for low vacuum pressure (55 mbar) on the end effector. Insufficient vacuum can result in inadequate wafer handling stability, increasing the risk of the wafer contacting other surfaces or components, leading to scratches.\n\nHYPOTHESIS 3: Wafer handler speed too high for current conditions\nEVIDENCE: The wafer handler speed is recorded at 0.45 m/s, which may be too fast given the concurrent issues with chuck pressure and vacuum. High speeds can exacerbate the risk of mechanical contact if the wafer is not securely held, resulting in scratches.\n\nROOT CAUSE SUMMARY: The scratch defect on the wafer is likely due to mechanical contact caused by a combination of high chuck pressure and low vacuum holding force, leading to wafer instability. The elevated wafer handler speed may have further contributed to the risk of contact and subsequent scratching.",
+          "specificity": 4,
+          "actionability": 2,
+          "grounding": 4,
+          "composite": 3.33,
+          "rationale": "The report references specific equipment parameters and logs, suggests diagnostic insights but lacks concrete corrective steps.",
+          "elapsed_s": 5.8
+        },
+        "no_telemetry": {
+          "label": "No Telemetry (Retrieval only)",
+          "ai_output": "HYPOTHESIS 1: End-effector contact during wafer transfer due to vacuum loss\nEVIDENCE: The defect is classified as a scratch with high confidence (94.2%), and historically similar defects have been linked to end-effector contact during wafer transfer. The linear nature and consistent width of the scratch suggest a single contact event, which aligns with potential vacuum loss causing the end-effector to improperly handle the wafer.\n\nHYPOTHESIS 2: Chuck particle contamination causing mechanical contact\nEVIDENCE: Another historically similar defect was attributed to chuck particle contamination, which can lead to mechanical contact and scratching. The absence of recent equipment logs suggests that routine checks might have missed contamination, allowing particles to accumulate and cause damage during wafer handling.\n\nHYPOTHESIS 3: Misalignment during wafer handling\nEVIDENCE: Although less likely, misalignment during wafer handling could cause a scratch at a consistent angle and width. The 45-degree angle of the scratch might indicate a systematic issue with the alignment mechanism, though this is less supported by historical data compared to other hypotheses.\n\nROOT CAUSE SUMMARY: The most likely root cause of the scratch defect is end-effector contact during wafer transfer due to a vacuum loss event, as supported by historical data and the nature of the defect. Chuck particle contamination is another potential cause, given the absence of recent equipment logs and historical precedence. Misalignment during wafer handling is a less likely but possible cause.",
+          "specificity": 3,
+          "actionability": 2,
+          "grounding": 4,
+          "composite": 3.0,
+          "rationale": "The report mentions specific defect mechanisms and historical data but lacks detailed corrective actions and equipment parameters.",
+          "elapsed_s": 6.3
+        },
+        "baseline": {
+          "label": "Baseline (Description only)",
+          "ai_output": "HYPOTHESIS 1: Mechanical contact with a foreign object during wafer handling\nEVIDENCE: The linear dark track at a 45-degree angle suggests a mechanical scratch, likely caused by a foreign object making contact with the wafer surface. The consistent width of ~5 um indicates a single contact event, possibly from a handling tool or debris. The absence of equipment logs suggests the event might have occurred during manual handling or in an area not monitored by automated systems.\n\nHYPOTHESIS 2: Misalignment or malfunction of wafer handling equipment\nEVIDENCE: The 2 mm long track crossing the wafer surface could result from a misaligned or malfunctioning piece of equipment, such as a robotic arm or wafer handler, that inadvertently scratched the wafer. The 0% die yield along the track supports the idea of a significant mechanical impact. The lack of recent equipment logs may indicate a failure in detecting or recording the equipment's malfunction.\n\nHYPOTHESIS 3: Contamination on the wafer surface during processing\nEVIDENCE: A contaminant particle on the wafer surface could have been dragged across the wafer during processing, creating a scratch-like defect. The linear nature and consistent width of the track are consistent with a particle being moved across the surface. The absence of historical matches suggests this might be an isolated incident, potentially due to a specific batch of materials or a transient contamination event.\n\nROOT CAUSE SUMMARY: The most likely cause of the defect is mechanical contact with a foreign object during wafer handling, resulting in a scratch. This could have occurred due to manual handling or an unmonitored area. Alternatively, a misalignment or malfunction of wafer handling equipment or contamination during processing could also be responsible for the defect. Further investigation into handling procedures and equipment alignment is recommended to prevent recurrence.",
+          "specificity": 3,
+          "actionability": 3,
+          "grounding": 3,
+          "composite": 3.0,
+          "rationale": "The output provides general hypotheses and evidence but lacks specific equipment parameters or corrective steps, and mixes grounded claims with inferences.",
+          "elapsed_s": 6.0
+        }
+      }
+    },
+    {
+      "case_id": "TC-02",
+      "defect_class": "edge_crack",
+      "conditions": {
+        "full": {
+          "label": "Full SemiFA (Retrieval + Telemetry)",
+          "ai_output": "HYPOTHESIS 1: Worn dicing blade combined with insufficient coolant flow\nEVIDENCE: The equipment logs indicate an alarm for blade wear (blade_wear_counter=42150) and a low coolant flow rate (0.8L/min [ALARM: FLOW_LOW]). Historically similar defects have been attributed to thermal stress fractures caused by a worn dicing blade and insufficient coolant, which aligns with the transgranular fracture morphology observed.\n\nHYPOTHESIS 2: Excessive blade speed causing chip-out at wafer edge\nEVIDENCE: The dicing blade was operating at 28500 rpm, which could be excessive and lead to chip-out at the wafer edge. A similar historical defect was attributed to excessive blade speed, which can cause mechanical stress and contribute to edge cracking.\n\nHYPOTHESIS 3: Inadequate chuck vacuum leading to wafer instability\nEVIDENCE: The chuck vacuum was recorded at 68mbar, which may be insufficient to securely hold the wafer during dicing. This could lead to wafer movement and contribute to mechanical stress, potentially causing edge cracks and delamination patterns observed in adjacent die.\n\nROOT CAUSE SUMMARY: The most likely root cause of the branching crack is a combination of a worn dicing blade and insufficient coolant flow, leading to thermal stress fractures. Excessive blade speed and inadequate chuck vacuum may also contribute to mechanical stress, exacerbating the defect. Immediate attention to equipment maintenance and operational parameters is recommended to prevent recurrence.",
+          "specificity": 4,
+          "actionability": 3,
+          "grounding": 5,
+          "composite": 4.0,
+          "rationale": "The report references specific equipment parameters and defect mechanisms, suggests general maintenance actions, and grounds claims in provided evidence.",
+          "elapsed_s": 5.0
+        },
+        "no_retrieval": {
+          "label": "No Retrieval (Telemetry only)",
+          "ai_output": "HYPOTHESIS 1: Insufficient coolant flow leading to overheating and thermal stress\nEVIDENCE: The equipment logs indicate an alarm for low coolant flow rate (0.8L/min), which is below the optimal level. Insufficient cooling can cause localized overheating, increasing thermal stress and making the wafer more susceptible to cracking, especially at the edges where stress concentration is higher.\n\nHYPOTHESIS 2: Excessive blade wear causing increased mechanical stress during dicing\nEVIDENCE: The blade wear counter shows an alarm for excessive wear (42150), suggesting that the dicing blade may be dull or damaged. A worn blade can exert uneven or excessive mechanical force on the wafer, leading to edge cracks and propagation of fractures.\n\nHYPOTHESIS 3: High dicing blade RPM contributing to mechanical stress\nEVIDENCE: The dicing blade RPM is recorded at 28500rpm, which may be higher than recommended for the current blade condition. High RPM can exacerbate the effects of blade wear, increasing the likelihood of mechanical stress-induced cracking, particularly at the wafer edge.\n\nROOT CAUSE SUMMARY: The branching crack from the wafer edge is likely caused by a combination of insufficient coolant flow and excessive blade wear, leading to thermal and mechanical stress during dicing. The high RPM of the dicing blade may further contribute to the stress, exacerbating the defect. Addressing these factors should mitigate the risk of similar defects in the future.",
+          "specificity": 4,
+          "actionability": 3,
+          "grounding": 4,
+          "composite": 3.67,
+          "rationale": "The report references specific process parameters and equipment alarms, suggests general corrective actions, and mostly grounds claims in available evidence.",
+          "elapsed_s": 4.2
+        },
+        "no_telemetry": {
+          "label": "No Telemetry (Retrieval only)",
+          "ai_output": "HYPOTHESIS 1: Worn dicing blade combined with insufficient coolant\nEVIDENCE: The transgranular fracture morphology and branching crack pattern are consistent with thermal stress fractures, which can occur when a worn dicing blade generates excessive heat. Historically, similar defects have been attributed to this cause, and the absence of recent equipment logs suggests that routine maintenance checks might have been overlooked, allowing blade wear to go unnoticed.\n\nHYPOTHESIS 2: Excessive blade speed causing chip-out at wafer edge\nEVIDENCE: The location of the crack at the wafer edge and its propagation inward is indicative of mechanical stress, which can be exacerbated by excessive blade speed. This hypothesis is supported by historical data showing similar defects caused by high-speed dicing operations leading to edge damage.\n\nHYPOTHESIS 3: Inadequate wafer support during dicing\nEVIDENCE: Delamination stress patterns in adjacent die suggest that mechanical instability during the dicing process could have contributed to the crack formation. Inadequate support can lead to vibrations and uneven pressure distribution, which might initiate cracks at the wafer edge.\n\nROOT CAUSE SUMMARY: The most likely root cause of the branching crack is a combination of a worn dicing blade and insufficient coolant, leading to thermal stress fractures. This is supported by the transgranular fracture morphology and historical defect data. Excessive blade speed and inadequate wafer support during dicing are also potential contributing factors.",
+          "specificity": 4,
+          "actionability": 2,
+          "grounding": 4,
+          "composite": 3.33,
+          "rationale": "The report references specific defect mechanisms and historical data but lacks concrete corrective steps, though most claims are grounded in evidence.",
+          "elapsed_s": 3.7
+        },
+        "baseline": {
+          "label": "Baseline (Description only)",
+          "ai_output": "HYPOTHESIS 1: Mechanical stress during wafer handling\nEVIDENCE: The initiation of the crack at the wafer edge and its propagation inward suggests mechanical stress, possibly from handling equipment or manual handling. The absence of recent equipment logs makes it difficult to pinpoint a specific event, but handling is a common cause of edge cracks. The delamination stress patterns in adjacent die further support the presence of mechanical stress.\n\nHYPOTHESIS 2: Thermal stress during processing\nEVIDENCE: Transgranular fracture morphology can be indicative of thermal stress, which might occur during rapid temperature changes in processing steps such as rapid thermal annealing. The branching nature of the crack could result from uneven thermal expansion or contraction, particularly if the wafer was not uniformly heated or cooled.\n\nHYPOTHESIS 3: Intrinsic material defects or impurities\nEVIDENCE: Although no historical matches were found, intrinsic defects or impurities at the wafer edge could weaken the material, making it more susceptible to cracking. The transgranular fracture morphology might suggest that the crack propagated through the grains, which could be exacerbated by pre-existing material weaknesses.\n\nROOT CAUSE SUMMARY: The most likely root cause of the branching crack is mechanical stress during wafer handling, as indicated by the crack's initiation at the wafer edge and the delamination patterns in adjacent die. Thermal stress during processing and intrinsic material defects are also potential contributors, but less likely given the evidence. Further investigation into handling procedures and thermal processing conditions is recommended to prevent recurrence.",
+          "specificity": 3,
+          "actionability": 2,
+          "grounding": 3,
+          "composite": 2.67,
+          "rationale": "The output mentions general causes and evidence but lacks specific equipment parameters or corrective steps, and mixes grounded claims with inferences.",
+          "elapsed_s": 4.7
+        }
+      }
+    },
+    {
+      "case_id": "TC-03",
+      "defect_class": "particle_contamination",
+      "conditions": {
+        "full": {
+          "label": "Full SemiFA (Retrieval + Telemetry)",
+          "ai_output": "HYPOTHESIS 1: CVD chamber wall deposition flaking\nEVIDENCE: The defect description indicates silicon oxide particles, which are consistent with deposition materials used in CVD processes. The recent equipment logs show an overdue chamber clean cycle, which aligns with historical cases where delayed cleaning led to deposition flaking. Additionally, the non-uniform distribution of defects, denser near the wafer center, suggests particles originating from the chamber walls.\n\nHYPOTHESIS 2: Susceptor coating degradation\nEVIDENCE: The susceptor temperature is recorded at 650\u00b0C, which is within the range that can cause thermal stress and degradation of susceptor coatings over time. Historical defects with similar characteristics have been linked to susceptor coating issues, resulting in SiO2 particulate generation. The presence of silicon oxide particles supports this hypothesis.\n\nHYPOTHESIS 3: Pressure spike causing particle dislodgement\nEVIDENCE: The equipment logs indicate a pressure spike alarm in the CVD chamber. Such pressure fluctuations can dislodge particles from chamber surfaces or equipment, contributing to contamination. The timing of the pressure spike closely precedes the detection of defects, suggesting a potential link.\n\nROOT CAUSE SUMMARY: The most likely root cause of the particle contamination is flaking of deposition materials from the CVD chamber walls due to overdue cleaning cycles. This is supported by the presence of silicon oxide particles and the non-uniform defect distribution. Susceptor coating degradation and pressure spikes are also potential contributors, given the equipment conditions and historical defect patterns.",
+          "specificity": 4,
+          "actionability": 2,
+          "grounding": 4,
+          "composite": 3.33,
+          "rationale": "The report references specific process stages and evidence but lacks concrete corrective steps, though most claims are well-grounded in the provided evidence.",
+          "elapsed_s": 5.0
+        },
+        "no_retrieval": {
+          "label": "No Retrieval (Telemetry only)",
+          "ai_output": "HYPOTHESIS 1: Contamination due to overdue chamber cleaning\nEVIDENCE: The equipment logs indicate an alarm for \"CLEAN_OVERDUE,\" suggesting that the chamber has not been cleaned for 187 cycles, which is likely beyond the recommended maintenance schedule. Accumulation of residues and particles in the chamber over time can lead to contamination of the wafers, particularly with silicon oxide particles, as observed in the defect description.\n\nHYPOTHESIS 2: Pressure instability causing particle generation\nEVIDENCE: The log shows an \"ALARM: PRESSURE_SPIKE\" with the CVD chamber pressure recorded at 4.2 mTorr. Pressure spikes can cause instability in the deposition process, potentially leading to the formation and deposition of unwanted particles, such as silicon oxide, on the wafer surface. The non-uniform distribution of defects, denser near the wafer center, could be a result of pressure-related deposition anomalies.\n\nHYPOTHESIS 3: Inadequate purge gas flow leading to contamination\nEVIDENCE: The purge gas flow is recorded at 12.5 sccm, which may be insufficient for effectively removing contaminants and by-products from the chamber during processing. Inadequate purging can allow particles to settle on the wafer surface, contributing to the observed defect pattern.\n\nROOT CAUSE SUMMARY: The most likely root cause of the silicon oxide particle contamination is the overdue chamber cleaning, which has led to the accumulation of residues and particles in the CVD chamber. Contributing factors may include pressure instability and inadequate purge gas flow, both of which can exacerbate the deposition of contaminants on the wafer surface. Regular maintenance and process parameter optimization are recommended to prevent recurrence.",
+          "specificity": 4,
+          "actionability": 3,
+          "grounding": 5,
+          "composite": 4.0,
+          "rationale": "The report references specific process stages and equipment parameters, suggests general maintenance and optimization actions, and all claims are well-supported by the provided equipment logs.",
+          "elapsed_s": 4.9
+        },
+        "no_telemetry": {
+          "label": "No Telemetry (Retrieval only)",
+          "ai_output": "HYPOTHESIS 1: CVD chamber wall deposition flaking\nEVIDENCE: Historically similar defects have been attributed to CVD chamber wall deposition flaking, with a high confidence level of 0.89. The presence of silicon oxide particles aligns with the materials typically used in CVD processes. The non-uniform distribution, denser near the wafer center, suggests a source within the chamber, such as flaking from the walls, which could be more pronounced near the center due to deposition patterns.\n\nHYPOTHESIS 2: Susceptor coating degradation generating SiO2 particulates\nEVIDENCE: Another historically similar defect with a confidence level of 0.82 was caused by susceptor coating degradation. The silicon oxide particles detected by EDS could originate from the susceptor, which is often coated with materials that can degrade over time, especially if maintenance cycles are not adhered to. The central concentration of defects could be due to the positioning of the susceptor relative to the wafer.\n\nHYPOTHESIS 3: Inadequate cleaning cycle leading to particle accumulation\nEVIDENCE: The overdue clean cycle mentioned in the historical defect analysis suggests that inadequate cleaning could lead to particle accumulation and eventual contamination. The lack of recent equipment logs may indicate that maintenance and cleaning protocols have not been followed, allowing particles to accumulate and be distributed unevenly across the wafer.\n\nROOT CAUSE SUMMARY: The most likely root cause of the particle contamination is CVD chamber wall deposition flaking, supported by historical data and the nature of the defect distribution. Susceptor coating degradation is another plausible cause, given the presence of silicon oxide particles and the defect pattern. Inadequate cleaning cycles could also contribute to particle accumulation, exacerbating contamination issues.",
+          "specificity": 4,
+          "actionability": 2,
+          "grounding": 4,
+          "composite": 3.33,
+          "rationale": "The report references specific process stages and historical evidence but lacks concrete corrective steps, focusing instead on diagnostic suggestions.",
+          "elapsed_s": 4.9
+        },
+        "baseline": {
+          "label": "Baseline (Description only)",
+          "ai_output": "HYPOTHESIS 1: Contamination during chemical mechanical planarization (CMP) process\nEVIDENCE: The presence of silicon oxide particles suggests a potential issue during the CMP process, where slurry or pad contamination could introduce such particles. The non-uniform distribution, denser near the wafer center, aligns with typical CMP-related defects, as the center of the wafer often experiences different pressure and flow dynamics compared to the edges.\n\nHYPOTHESIS 2: Contaminated deposition equipment\nEVIDENCE: Silicon oxide particles could originate from deposition equipment if there is contamination within the chamber or if the target material is compromised. The lack of recent equipment logs makes it difficult to rule out this possibility, and the central concentration of defects could be due to non-uniform deposition conditions or equipment wear that affects the center more prominently.\n\nHYPOTHESIS 3: Wafer handling contamination\nEVIDENCE: Particle contamination could occur during wafer handling, especially if there is a failure in cleanroom protocols or if handling equipment is contaminated. The central concentration of defects might result from handling processes that apply more pressure or contact at the wafer center, such as during loading or unloading.\n\nROOT CAUSE SUMMARY: The bright spots are likely due to particle contamination, with the most probable source being the CMP process, given the nature and distribution of the defects. Other potential sources include contaminated deposition equipment or wafer handling issues, both of which could introduce silicon oxide particles, particularly affecting the wafer center. Further investigation into these processes and equipment is necessary to pinpoint the exact cause.",
+          "specificity": 3,
+          "actionability": 2,
+          "grounding": 3,
+          "composite": 2.67,
+          "rationale": "The output mentions process categories and general defect mechanisms but lacks specific parameters or corrective actions, and mixes grounded claims with inferences due to lack of evidence.",
+          "elapsed_s": 5.7
+        }
+      }
+    },
+    {
+      "case_id": "TC-04",
+      "defect_class": "ring_pattern",
+      "conditions": {
+        "full": {
+          "label": "Full SemiFA (Retrieval + Telemetry)",
+          "ai_output": "HYPOTHESIS 1: Spin coater speed instability causing resist pile-up at resonance radius\nEVIDENCE: The recent equipment logs indicate an alarm for speed instability at 2200 rpm, which matches the historically similar defect where speed instability was identified as the root cause. The concentric ring defect pattern is consistent with resist pile-up due to speed fluctuations during the spin-coating process.\n\nHYPOTHESIS 2: High ambient humidity causing solvent evaporation non-uniformity during spin\nEVIDENCE: An alarm for high ambient humidity (62%) was recorded in the recent equipment logs. Historically, similar defects have been attributed to high humidity affecting solvent evaporation rates, leading to non-uniform resist distribution. The defect pattern aligns with known issues caused by humidity variations.\n\nHYPOTHESIS 3: Exhaust flow rate affecting solvent evaporation and resist uniformity\nEVIDENCE: The exhaust flow rate was recorded at 145 CFM, which, while not flagged as an alarm, could potentially influence solvent evaporation rates and resist uniformity. Although less likely than the first two hypotheses, variations in exhaust flow can contribute to non-uniform drying and defect formation.\n\nROOT CAUSE SUMMARY: The most likely root cause of the concentric ring defect is spin coater speed instability, as indicated by the recent alarm and historical precedent. High ambient humidity is also a significant contributing factor, potentially exacerbating solvent evaporation non-uniformity. While exhaust flow variations could play a role, they are less likely to be the primary cause compared to speed and humidity issues.",
+          "specificity": 4,
+          "actionability": 2,
+          "grounding": 4,
+          "composite": 3.33,
+          "rationale": "The report references specific process stages and measurement values, suggests diagnostic directions without concrete corrective steps, and most claims are grounded in provided evidence.",
+          "elapsed_s": 5.3
+        },
+        "no_retrieval": {
+          "label": "No Retrieval (Telemetry only)",
+          "ai_output": "HYPOTHESIS 1: Spin speed instability\nEVIDENCE: The equipment logs indicate an alarm for \"SPEED_UNSTABLE\" at a spin speed of 2200rpm, which is critical for achieving uniform resist coating. Instability in spin speed can lead to non-uniform distribution of the resist, resulting in the observed concentric ring pattern of defective dies.\n\nHYPOTHESIS 2: High ambient humidity\nEVIDENCE: The logs also show an alarm for \"HUMIDITY_HIGH\" with a recorded ambient humidity of 62%. High humidity levels can affect the viscosity and drying rate of the photoresist, potentially leading to non-uniform coating and defects concentrated at specific radial distances on the wafer.\n\nHYPOTHESIS 3: Insufficient resist volume\nEVIDENCE: Although the resist volume is recorded as 1.8mL, which might be within normal operating parameters, any slight deviation in volume can exacerbate issues caused by other factors such as spin speed instability or high humidity, contributing to non-uniform resist distribution.\n\nROOT CAUSE SUMMARY: The most likely root cause of the concentric ring pattern of defective dies is the instability in spin speed, as indicated by the alarm in the equipment logs. High ambient humidity may have compounded the issue by affecting the resist's properties, while the resist volume, although seemingly adequate, could have further influenced the defect pattern under these conditions.",
+          "specificity": 4,
+          "actionability": 2,
+          "grounding": 4,
+          "composite": 3.33,
+          "rationale": "The report references specific process parameters and equipment alarms, suggests diagnostics but lacks concrete corrective steps, and mostly grounds claims in available evidence.",
+          "elapsed_s": 5.2
+        },
+        "no_telemetry": {
+          "label": "No Telemetry (Retrieval only)",
+          "ai_output": "HYPOTHESIS 1: Spin coater speed instability causing resist pile-up at resonance radius  \nEVIDENCE: The defect description matches a known pattern associated with spin-coat non-uniformity, specifically a concentric ring at 60-70% radius from the wafer center. Historically, a similar defect with a high confidence level (0.95) was attributed to spin coater speed instability. The absence of recent equipment logs suggests that the issue might be intermittent or not currently being monitored effectively.\n\nHYPOTHESIS 2: High ambient humidity causing solvent evaporation non-uniformity during spin  \nEVIDENCE: Another historically similar defect (confidence level 0.87) was linked to high ambient humidity affecting solvent evaporation rates, leading to non-uniform resist distribution. The pattern of good die distribution inside and outside the ring supports the idea of environmental factors affecting the process during the spin-coating phase.\n\nHYPOTHESIS 3: Spin coater nozzle malfunction leading to uneven resist dispensing  \nEVIDENCE: Although not directly mentioned in the historical data, a malfunctioning nozzle could cause uneven resist application, resulting in a ring pattern defect. The lack of recent equipment logs might indicate that nozzle performance is not being actively monitored, allowing for potential unnoticed malfunctions.\n\nROOT CAUSE SUMMARY: The most likely root cause of the concentric ring defect is spin coater speed instability, as it closely matches the defect pattern and has a strong historical precedent. High ambient humidity is another plausible cause, affecting solvent evaporation rates. A less likely, but possible, cause is a malfunctioning spin coater nozzle leading to uneven resist application.",
+          "specificity": 4,
+          "actionability": 2,
+          "grounding": 4,
+          "composite": 3.33,
+          "rationale": "The output references specific process stages and historical defect patterns, suggests diagnostic directions but lacks concrete corrective steps, and most claims are grounded in historical evidence.",
+          "elapsed_s": 6.1
+        },
+        "baseline": {
+          "label": "Baseline (Description only)",
+          "ai_output": "HYPOTHESIS 1: Spin-coating process non-uniformity\nEVIDENCE: The defect pattern matches a spin-coat non-uniformity signature, with a concentric ring of defective dies at 60-70% radius from the wafer center. This suggests an issue with the spin-coating process, such as incorrect spin speed, viscosity of the coating material, or uneven distribution during the spin-coating step.\n\nHYPOTHESIS 2: Wafer chuck or alignment issue during spin-coating\nEVIDENCE: A concentric ring defect pattern can also result from misalignment or instability of the wafer during the spin-coating process. If the wafer is not properly centered or secured on the chuck, it could lead to uneven coating distribution, particularly at specific radial distances.\n\nHYPOTHESIS 3: Contamination or particle presence on the wafer surface\nEVIDENCE: The presence of particles or contaminants on the wafer surface during spin-coating could disrupt the flow of the coating material, leading to non-uniform coverage. This could manifest as a ring pattern if the particles are distributed in a circular manner or if they affect the coating flow at a specific radial distance.\n\nROOT CAUSE SUMMARY: The concentric ring of defective dies is most likely due to a non-uniformity in the spin-coating process, potentially caused by incorrect process parameters, wafer misalignment, or surface contamination. The defect pattern aligns with known spin-coat non-uniformity signatures, indicating a need to investigate the spin-coating equipment and process conditions.",
+          "specificity": 3,
+          "actionability": 2,
+          "grounding": 3,
+          "composite": 2.67,
+          "rationale": "The output mentions the spin-coating process and potential issues but lacks specific parameters or corrective actions, and the claims are partially grounded in defect pattern analysis without direct evidence.",
+          "elapsed_s": 4.9
+        }
+      }
+    },
+    {
+      "case_id": "TC-05",
+      "defect_class": "center_cluster",
+      "conditions": {
+        "full": {
+          "label": "Full SemiFA (Retrieval + Telemetry)",
+          "ai_output": "HYPOTHESIS 1: CMP excessive downforce with worn pad causing center over-polish\nEVIDENCE: The recent equipment logs indicate an alarm for high downforce at 3.1 psi, which is consistent with excessive pressure applied during CMP. Additionally, the pad condition index alarm for a worn pad (0.62) suggests that the pad is not in optimal condition, which can exacerbate the effects of high downforce, particularly at the wafer center, leading to over-polishing.\n\nHYPOTHESIS 2: Non-uniform slurry distribution \u2014 center starvation leading to scratching\nEVIDENCE: Historically similar defects have been attributed to non-uniform slurry distribution, which can cause center starvation and result in scratching. Although the current slurry flow rate is recorded at 280 mL/min, there is no direct alarm or indication of non-uniform distribution in the logs. However, this remains a plausible hypothesis given past occurrences.\n\nHYPOTHESIS 3: Platen speed contributing to uneven polish\nEVIDENCE: The platen speed is recorded at 87 rpm, which, while not flagged as an alarm, could contribute to uneven polishing if not properly calibrated with other parameters such as downforce and slurry flow. This factor, combined with the worn pad, might lead to increased polishing at the wafer center.\n\nROOT CAUSE SUMMARY: The most likely root cause of the center cluster defect is excessive downforce combined with a worn pad, leading to over-polishing at the wafer center. This is supported by recent equipment alarms indicating high downforce and a worn pad condition. While non-uniform slurry distribution and platen speed are potential contributing factors, they are less directly supported by the current evidence.",
+          "specificity": 5,
+          "actionability": 2,
+          "grounding": 4,
+          "composite": 3.67,
+          "rationale": "The report provides specific equipment parameters and defect mechanisms, suggests diagnostics but lacks concrete corrective steps, and mostly grounds claims in evidence with minor inference.",
+          "elapsed_s": 4.4
+        },
+        "no_retrieval": {
+          "label": "No Retrieval (Telemetry only)",
+          "ai_output": "HYPOTHESIS 1: Excessive CMP downforce\nEVIDENCE: The equipment logs indicate an alarm for high downforce at 3.1 psi, which is above the typical operational range. Excessive downforce can lead to over-polishing, particularly at the wafer center, causing metal layer thinning as observed in the SEM cross-section.\n\nHYPOTHESIS 2: Worn polishing pad\nEVIDENCE: The pad condition index is at 0.62, triggering an alarm for a worn pad. A worn pad can lead to uneven polishing pressure distribution, exacerbating over-polishing at the wafer center and contributing to the observed defect pattern.\n\nHYPOTHESIS 3: Imbalance in slurry distribution\nEVIDENCE: While the slurry flow rate is within normal parameters at 280 mL/min, any imbalance or inconsistency in slurry distribution could contribute to non-uniform polishing. However, this is less likely given the lack of direct evidence in the logs, making it a secondary consideration.\n\nROOT CAUSE SUMMARY: The most likely root cause of the center cluster defect is excessive CMP downforce, as indicated by the high force alarm. This is compounded by a worn polishing pad, which may have contributed to uneven pressure distribution and over-polishing at the wafer center. Addressing these equipment issues should mitigate the defect occurrence.",
+          "specificity": 5,
+          "actionability": 4,
+          "grounding": 4,
+          "composite": 4.33,
+          "rationale": "The report cites specific equipment parameters and process steps, prescribes clear corrective actions, and grounds most claims in available evidence.",
+          "elapsed_s": 4.1
+        },
+        "no_telemetry": {
+          "label": "No Telemetry (Retrieval only)",
+          "ai_output": "HYPOTHESIS 1: CMP excessive downforce with worn pad causing center over-polish\nEVIDENCE: Historically similar defect with a high confidence level (0.92) identified excessive downforce and a worn pad as the root cause. The pattern of defects concentrated at the wafer center and the observed metal layer thinning are consistent with over-polishing due to excessive pressure and uneven pad wear.\n\nHYPOTHESIS 2: Non-uniform slurry distribution \u2014 center starvation leading to scratching\nEVIDENCE: Another historically similar defect with a confidence level of 0.85 identified non-uniform slurry distribution as the root cause. The center of the wafer experiencing slurry starvation would lead to increased friction and potential scratching, aligning with the observed defect pattern and thinning.\n\nHYPOTHESIS 3: CMP tool misalignment causing uneven pressure distribution\nEVIDENCE: Although not directly mentioned in historical data, tool misalignment can cause uneven pressure distribution, leading to over-polishing at the wafer center. The absence of recent equipment logs makes it difficult to verify, but this remains a plausible hypothesis given the defect pattern.\n\nROOT CAUSE SUMMARY: The most likely root cause of the center cluster defect is excessive downforce combined with a worn CMP pad, leading to over-polishing at the wafer center. Non-uniform slurry distribution causing center starvation is another potential cause, while tool misalignment remains a less likely but possible contributor. Further investigation into CMP tool settings and maintenance history is recommended to confirm the root cause.",
+          "specificity": 4,
+          "actionability": 3,
+          "grounding": 4,
+          "composite": 3.67,
+          "rationale": "The report references specific process stages and historical evidence but lacks concrete corrective steps.",
+          "elapsed_s": 4.1
+        },
+        "baseline": {
+          "label": "Baseline (Description only)",
+          "ai_output": "HYPOTHESIS 1: CMP Process Parameter Drift\nEVIDENCE: The defect pattern suggests over-polishing concentrated at the wafer center, which is consistent with a drift in CMP process parameters such as downforce or polishing time. The lack of recent equipment logs might indicate that the drift went unnoticed, leading to excessive material removal at the center.\n\nHYPOTHESIS 2: Non-uniform Wafer Mounting\nEVIDENCE: If the wafer was not mounted uniformly on the polishing head, it could result in uneven pressure distribution, causing more aggressive polishing at the center. This would lead to the observed metal layer thinning and defect clustering near the wafer center.\n\nHYPOTHESIS 3: Pad Wear or Conditioning Issues\nEVIDENCE: Uneven wear or improper conditioning of the CMP pad can lead to non-uniform polishing rates across the wafer. A worn pad center could polish more aggressively, aligning with the defect pattern observed. Without recent equipment logs, such maintenance issues might have been overlooked.\n\nROOT CAUSE SUMMARY: The cluster of defective dies near the wafer center is likely due to CMP over-polishing, potentially caused by process parameter drift, non-uniform wafer mounting, or pad wear/conditioning issues. The absence of recent equipment logs suggests these issues may have gone undetected, leading to excessive metal layer thinning at the center.",
+          "specificity": 3,
+          "actionability": 2,
+          "grounding": 3,
+          "composite": 2.67,
+          "rationale": "The output mentions specific process categories like CMP and potential issues but lacks concrete corrective steps and is partially grounded in evidence.",
+          "elapsed_s": 3.9
+        }
+      }
+    }
+  ],
+  "elapsed_s": 101.2
+}

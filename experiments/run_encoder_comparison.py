@@ -595,8 +595,6 @@ def main():
     with open(out_path, "w") as f:
         json.dump(out, f, indent=2)
     print(f"\nResults saved → {out_path}")
-    print("\nNext step: copy the LaTeX rows above into paper/semifa_arxiv.tex "
-          "tab:encoder_comparison, removing the † footnote.")
 
 
 if __name__ == "__main__":

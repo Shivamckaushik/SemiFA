@@ -1,0 +1,28 @@
+{
+  "experiment": "SemiFA encoder comparison",
+  "dataset": "SemiFA-930",
+  "train_split": 790,
+  "val_split": 140,
+  "device": "cuda",
+  "epochs": 50,
+  "results": [
+    {
+      "method": "DINOv2-base + MLP (ours)",
+      "accuracy": 0.9,
+      "macro_f1": 0.8975771290837015,
+      "trainable_params": 213897,
+      "n_val": 140,
+      "runtime_s": 19.627477169036865,
+      "note": "Frozen encoder + lightweight MLP head trained on SemiFA-930 train split"
+    },
+    {
+      "method": "CLIP ViT-B/32 zero-shot",
+      "accuracy": 0.20714285714285716,
+      "macro_f1": 0.17334247219304688,
+      "trainable_params": 0,
+      "n_val": 140,
+      "runtime_s": 5.615037441253662,
+      "note": "Zero-shot \u2014 class-specific text prompts, no fine-tuning"
+    }
+  ]
+}
