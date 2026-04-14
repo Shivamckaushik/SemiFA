@@ -45,7 +45,7 @@ shivamckaushik@gmail.com
 
 \begin{abstract}
 Semiconductor failure analysis (FA) is a labor-intensive process in which engineers examine inspection images, correlate equipment telemetry, consult historical defect records, and write structured reports.
-A single FA report typically requires 2--4 hours of domain expert time~\cite{kla2023klarity,amat2023actionable}.
+The end-to-end FA process---from failure verification through physical analysis to root cause reporting---traditionally requires days to weeks of domain expert time~\cite{infinitalab2023fa,azom2023fab}; even the expert review and reporting phase alone, given a set of inspection images, can consume several hours per case~\cite{kla2023klarity,amat2023actionable}.
 We present \semifa{}, an agentic multi-modal framework that autonomously generates structured FA reports from semiconductor inspection images in under one minute.
 \semifa{} decomposes the FA process into a four-agent pipeline orchestrated by LangGraph: a \textit{DefectDescriber} that classifies and narrates defect morphology using DINOv2 embeddings and LLaVA-1.6, a \textit{RootCauseAnalyzer} that fuses equipment telemetry from SECS/GEM with historically similar defects retrieved from a Qdrant vector database, a \textit{SeverityClassifier} that assigns severity and estimates yield impact, and a \textit{RecipeAdvisor} that proposes corrective process parameter adjustments.
 A fifth node assembles the outputs into a PDF report.
@@ -64,12 +64,14 @@ semiconductor inspection, failure analysis, vision-language model, multi-agent s
 \label{sec:introduction}
 %% ============================================================================
 
-The semiconductor manufacturing process involves hundreds of sequential steps---lithography, etching, chemical-mechanical planarization (CMP), chemical vapor deposition (CVD), ion implantation, wire bonding, and dicing---each of which can introduce defects that reduce die yield.
-When defects are detected by inline inspection tools such as KLA Surfscan or Applied Materials SEMVision, a failure analysis (FA) workflow is initiated.
-An experienced engineer examines high-resolution inspection images under scanning electron microscopy (SEM) or optical microscopy, cross-references the defect morphology against historical cases, queries equipment alarm logs, and synthesizes a structured report documenting defect classification, root cause hypotheses, severity assessment, and corrective action recommendations.
+The semiconductor manufacturing process involves hundreds of sequential steps---lithography, etching, chemical-mechanical planarization (CMP), deposition (CVD and PVD), ion implantation, wire bonding, and dicing---each of which can introduce defects that reduce die yield.
+After a certain processing step, wafers undergo Dark Field or Bright Field scanning, and based on control limits, wafers are routed for SEM Review.
+The tools used for wafer inspection and SEM review include KLA Surfscan and Applied Materials SEMVision.
+When defects exceed Out Of Control (OOC) limits, a failure analysis (FA) workflow is initiated.
+The defect process engineer examines high-resolution inspection images with a reference image and checks equipment alarm logs and lot history to determine the cause of the defects, and synthesizes a structured report documenting defect classification, root cause hypotheses, severity assessment, and provides corrective and preventive action recommendations to mitigate scrap risk and wafer exposure.
 
 This manual process presents three fundamental challenges.
-First, a single FA report requires 2--4 hours of domain expert time~\cite{kla2023klarity,amat2023actionable}, creating a bottleneck in high-volume manufacturing (HVM) fabs that process thousands of wafers daily.
+First, the end-to-end FA process---from failure verification through physical analysis to root cause reporting---traditionally requires days to weeks of domain expert time~\cite{infinitalab2023fa,azom2023fab}; even the expert review and reporting phase alone, given a set of inspection images, can consume several hours per case~\cite{kla2023klarity,amat2023actionable}, creating a bottleneck in high-volume manufacturing (HVM) fabs that process thousands of wafers daily.
 Second, report quality varies with individual expertise---junior engineers may miss subtle correlations between defect patterns and equipment state, while senior engineers' tacit knowledge remains uncodified.
 Third, the manual process does not scale: as advanced nodes shrink below 5\,nm and defect sensitivity increases, the volume of inspection events grows faster than the FA engineering workforce.
 
@@ -78,7 +80,7 @@ Concurrently, large language model (LLM)-based agent frameworks such as LangGrap
 Self-supervised visual encoders such as DINOv2~\cite{oquab2024dinov2} produce rich feature representations that transfer effectively to downstream classification tasks with minimal labeled data.
 
 However, no existing system combines these capabilities for semiconductor FA.
-Commercial tools such as KLA KLARITY~\cite{kla2023klarity} and Applied Materials Actionable Insight~\cite{amat2023actionable} perform automated defect classification but do not generate natural language reports, do not fuse equipment telemetry into their reasoning, and remain proprietary and closed-source.
+Commercial tools such as KLA KLARITY~\cite{kla2023klarity} and Applied Materials AIx~\cite{amat2023actionable} perform automated defect classification but, based on publicly available product documentation, do not generate natural language FA reports, do not fuse equipment telemetry into open-ended reasoning, and remain proprietary and closed-source.
 Academic work on wafer defect classification~\cite{wu2015wafer,saqlain2020voting,shim2020active} focuses exclusively on pattern recognition from wafer bin maps, without root cause analysis or report generation.
 
 In this paper, we present \semifa{}, a multi-modal agentic framework that autonomously generates structured FA reports from semiconductor inspection images.
@@ -255,12 +257,12 @@ To address this gap, we construct \semidataset{}, a dataset of 930 image-text pa
 \textbf{Gap 1: Missing defect classes in public datasets.}
 WM-811K~\cite{wu2015wafer} covers eight wafer bin map patterns: Center, Donut, Edge-Loc, Edge-Ring, Loc, Near-full, Random, and None.
 It does not include \texttt{scratch}, \texttt{particle\_contamination}, or \texttt{edge\_crack}---three of the most frequently encountered defect types in production fabs, particularly on wire bonding and dicing equipment.
-Because no public labeled dataset covers these classes, we generate them synthetically, parameterizing their spatial distributions based on defect morphologies documented in published semiconductor process engineering literature and SEMI standards.
+Because no public labeled dataset covers these classes, we generate them synthetically, parameterizing their spatial distributions based on the first author's domain knowledge of defect morphology from seven years of semiconductor manufacturing experience.
 
 \textbf{Gap 2: No natural language FA narratives.}
 Both WM-811K and MixedWM38 provide only categorical labels.
 Neither contains defect descriptions, root cause hypotheses, severity ratings, or corrective action recommendations---the structured output that \semifa{} must learn to generate.
-All FA narratives in \semidataset{} are therefore authored by the first author, drawing on nine years of semiconductor manufacturing industry experience spanning wafer inspection, process metrology, and equipment engineering domains.
+All FA narratives in \semidataset{} were generated using a large language model (LLM) prompted with the defect class, physical mechanism, severity label, and domain-specific context designed by the first author. Each narrative follows a structured template---defect morphology, root cause hypotheses with supporting evidence, severity reasoning, and corrective actions---developed from the first author's seven years of semiconductor manufacturing experience spanning wire bonding, machine vision, SECS/GEM equipment protocol, and yield analysis. The generated narratives were reviewed by the first author for domain plausibility.
 
 The three sources are:
 
@@ -275,7 +277,7 @@ The three sources are:
     We sample from the labeled subset of WM-811K (approximately 172,000 labeled maps out of 811,457 total).
     We draw images for six classes: \texttt{center\_cluster} (WM-811K: \textit{Center}, 106 images), \texttt{local\_cluster} (WM-811K: \textit{Loc}, 100), \texttt{ring\_pattern} (WM-811K: \textit{Donut} + \textit{Edge-Ring}, 54), \texttt{random\_defects} (WM-811K: \textit{Random}, 106), \texttt{near\_full\_wafer} (WM-811K: \textit{Near-full}, 94), and \texttt{no\_defect} (WM-811K: \textit{None}, 112).
     Counts are not uniform across classes because we cap each class at the available labeled WM-811K supply after excluding images with ambiguous or mixed-type annotations.
-    We intentionally limit the subset rather than using all available images because \semidataset{} is a \textit{VLM instruction-tuning dataset}, not a classification benchmark: each image must be paired with a manually written FA narrative, which bounds the feasible annotation volume.
+    We intentionally limit the subset rather than using all available images because \semidataset{} is a \textit{VLM instruction-tuning dataset}, not a classification benchmark: each image must be paired with an LLM-generated FA narrative reviewed for domain plausibility, which bounds the feasible annotation volume.
     \Cref{tab:wm811k_mapping} shows the label taxonomy mapping.
 
     \item \textbf{MixedWM38~\cite{wang2020mixedwm38} (1 class, 40 images).}
@@ -342,7 +344,7 @@ Each image in \semidataset{} is annotated with the following fields:
     \item \textbf{source}: provenance (\texttt{synthetic}, \texttt{wm811k}, or \texttt{mixedwm38})
 \end{itemize}
 
-Descriptions are written by the first author, who has nine years of semiconductor manufacturing industry experience spanning wire bonding, die attach, wafer inspection, and process metrology domains across multiple high-volume manufacturing environments.
+Descriptions were generated using an LLM prompted with the defect class, severity, and domain-specific context defined by the first author, and reviewed by the first author for domain plausibility.
 Each description follows a consistent template: (1) observed defect pattern, (2) spatial characteristics, (3) probable root cause mechanism, and (4) recommended corrective action.
 
 The annotations are stored in JSONL format compatible with LLaVA conversational fine-tuning: each record contains a ``conversations'' list with a ``human'' turn (question about the image) and an ``assistant'' turn (the structured FA response).
@@ -470,7 +472,7 @@ The dedicated DINOv2 accuracy analysis (Table~\ref{tab:classification}) reports 
 
 \begin{table}[t]
     \centering
-    \caption{Per-node latency breakdown (median of 3 runs, NVIDIA A100-SXM4-40\,GB, PyTorch 2.1.0, LLaVA-1.6 in 4-bit NF4).}
+    \caption{Per-node latency breakdown (single pipeline execution, NVIDIA A100-SXM4-40\,GB, PyTorch 2.1.0, LLaVA-1.6 in 4-bit NF4).}
     \label{tab:latency}
     \begin{tabular}{@{}lcc@{}}
         \toprule
@@ -487,9 +489,9 @@ The dedicated DINOv2 accuracy analysis (Table~\ref{tab:classification}) reports 
     \end{tabular}
 \end{table}
 
-The total pipeline latency of 48.4 seconds represents a reduction from the 2--4 hour manual process~\cite{kla2023klarity,amat2023actionable} to under one minute---a speedup of approximately 150--300$\times$.
+The total pipeline latency of 48.4 seconds represents a reduction from several hours of manual expert review and reporting~\cite{kla2023klarity,amat2023actionable} to under one minute---a speedup of approximately 150--300$\times$.
 The DefectDescriber is the most expensive node (45.5\% of total time, 22.0\,s) because it processes the full inspection image through DINOv2 feature extraction, wafer map spatial analysis, and LLaVA visual description generation --- the only node that ingests raw pixel data.
-The RootCauseAnalyzer (24.6\%, 11.9\,s) ranks second due to the multi-hypothesis generation with longer output sequences (350 tokens).
+The RootCauseAnalyzer (24.6\%, 11.9\,s) ranks second due to multi-hypothesis generation requiring longer output sequences than other nodes.
 The ReportGenerator is the least expensive node (5.2\%, 2.5\,s) as it performs deterministic dictionary assembly and PDF rendering without model inference.
 
 The latency breakdown reveals that approximately 95\% of pipeline time is spent on LLaVA inference across the four agentic nodes.
@@ -499,7 +501,7 @@ This suggests that future optimization should focus on inference acceleration (e
 
 We conduct an automated ablation study to quantify the independent contribution of each input modality to root cause hypothesis quality.
 The study uses 5 representative cases spanning five defect classes (scratch, edge\_crack, particle\_contamination, ring\_pattern, center\_cluster).
-Equipment telemetry context consists of representative simulated SECS/GEM alarm logs --- timestamp-tagged parameter readings and alarm events formatted according to the SECS-II message structure~\cite{semi_e5} --- consistent with the system's default simulator mode (\texttt{SECSGEM\_SIM=true}).
+Equipment telemetry context consists of representative SECS/GEM log entries manually authored by the first author based on seven years of semiconductor manufacturing domain knowledge, formatted as SECS-II S5F1 alarm reports and S6F11 collection event reports per SEMI E5/E37~\cite{semi_e5,semi_e37}; a production deployment would ingest identical message structures directly via HSMS.
 Similarly, historical retrieval context consists of representative prior-defect records with cosine similarity scores, reflecting the format produced by the Qdrant-backed retrieval pipeline.
 This design isolates the effect of each modality on LLaVA prompt quality independently of live infrastructure availability.
 We evaluate the RootCauseAnalyzer under four conditions:
@@ -551,15 +553,15 @@ Each case shows the defect classification with confidence, severity assessment, 
         \toprule
         \textbf{Case} & \textbf{Equipment} & \textbf{Defect Class} & \textbf{Conf.} & \textbf{Sev.} & \textbf{Root Cause (Top-1)} & \textbf{Recommendation (Primary)} \\
         \midrule
-        1 & KLA-T800-01 & scratch & 0.91 & MAJOR & Linear track across 12 die consistent with mechanical contact; vacuum chuck pressure anomaly logged 45\,min prior to inspection & Inspect and replace vacuum chuck gasket; verify chuck flatness within $\pm$2\,$\mu$m specification \\
+        1 & EQ-INSP-01 & scratch & 0.91 & MAJOR & Linear track across 12 die consistent with mechanical contact; vacuum chuck pressure anomaly logged 45\,min prior to inspection & Inspect and replace vacuum chuck gasket; verify chuck flatness within $\pm$2\,$\mu$m specification \\
         \addlinespace
-        2 & AMAT-CVD-03 & center\_cluster & 0.84 & MAJOR & Defect concentration within 25\% radius correlates with CVD chamber temperature gradient; similar pattern in lot LOT-2024-052 & Recalibrate showerhead spacing; increase edge zone heater setpoint by 3$^{\circ}$C \\
+        2 & EQ-CVD-03 & center\_cluster & 0.84 & MAJOR & Defect concentration within 25\% radius correlates with CVD chamber temperature gradient; similar pattern in lot LOT-2024-052 & Recalibrate showerhead spacing; increase edge zone heater setpoint by 3$^{\circ}$C \\
         \addlinespace
-        3 & TEL-Etch-07 & ring\_pattern & 0.79 & MAJOR & Annular band at 60--75\% radius matches spin-coat edge-bead removal failure; RF impedance alarm logged during prior etch step & Verify edge-bead removal nozzle position; clean solvent delivery line \\
+        3 & EQ-ETCH-07 & ring\_pattern & 0.79 & MAJOR & Annular band at 60--75\% radius matches spin-coat edge-bead removal failure; RF impedance alarm logged during prior etch step & Verify edge-bead removal nozzle position; clean solvent delivery line \\
         \addlinespace
-        4 & KNS-WB-12 & edge\_crack & 0.88 & MAJOR & Peripheral die damage consistent with dicing blade wear; blade lifetime at 94\% of scheduled replacement interval & Replace dicing blade; reduce dicing feed rate by 10\% for remaining lots \\
+        4 & EQ-DICE-12 & edge\_crack & 0.88 & MAJOR & Peripheral die damage consistent with dicing blade wear; blade lifetime at 94\% of scheduled replacement interval & Replace dicing blade; reduce dicing feed rate by 10\% for remaining lots \\
         \addlinespace
-        5 & ASML-Litho-02 & no\_defect & 0.97 & NONE & No defect pattern detected; uniform yield map with $>$98\% good die; all equipment parameters within specification & No corrective action required; continue standard monitoring \\
+        5 & EQ-LITHO-02 & no\_defect & 0.97 & NONE & No defect pattern detected; uniform yield map with $>$98\% good die; all equipment parameters within specification & No corrective action required; continue standard monitoring \\
         \bottomrule
     \end{tabular}
 \end{table*}
@@ -598,7 +600,7 @@ Several limitations should be noted.
 First, \semidataset{} consists primarily of wafer map images rather than raw SEM or optical micrographs, due to the proprietary nature of actual fab inspection data.
 While the architecture supports all three modalities, classification and generation quality on SEM/optical images has not been quantitatively evaluated.
 Second, the current pipeline is linear; in practice, some agents could execute in parallel (e.g., SeverityClassifier and RecipeAdvisor could run concurrently after RootCauseAnalyzer).
-Third, the FA narratives in \semidataset{} are authored by a single annotator; inter-annotator agreement studies would strengthen the dataset contribution.
+Third, the FA narratives in \semidataset{} are LLM-generated following a domain-expert-designed schema; human expert validation of individual narrative accuracy at scale would strengthen the dataset contribution.
 Fourth, QLoRA fine-tuning on the 790-example training split produced severe overfitting (train loss $\rightarrow$ $6.6 \times 10^{-5}$ within epoch 1) and degraded generation quality on held-out images; domain adaptation requires a substantially larger annotated corpus ($\geq$5{,}000 pairs) before reliable fine-tuning gains can be demonstrated.
 
 \textbf{Broader impact.}
@@ -618,7 +620,7 @@ Severity assessments and recipe modifications generated by \semifa{} should be r
 We presented \semifa{}, an agentic multi-modal framework for autonomous semiconductor failure analysis report generation.
 The system decomposes FA into four specialized agents---DefectDescriber, RootCauseAnalyzer, SeverityClassifier, and RecipeAdvisor---orchestrated by LangGraph, with DINOv2 for visual encoding, Qdrant for historical retrieval, SECS/GEM for equipment telemetry, and LLaVA-1.6 for natural language generation.
 We introduced \semidataset{}, a 930-sample dataset of semiconductor defect images paired with structured FA narratives across nine defect classes.
-Experimental evaluation on an NVIDIA A100-SXM4-40\,GB GPU demonstrated 92.1\% defect classification accuracy (macro F1 = 0.917) on 140 validation images, complete report generation in 48 seconds (a 150--300$\times$ speedup over the 2--4 hour manual process~\cite{kla2023klarity,amat2023actionable}), and a $+$0.86 composite improvement in root cause reasoning quality (GPT-4o judge, 1--5 scale) from multi-modal fusion over an image-only baseline.
+Experimental evaluation on an NVIDIA A100-SXM4-40\,GB GPU demonstrated 92.1\% defect classification accuracy (macro F1 = 0.917) on 140 validation images, complete report generation in 48 seconds (a 150--300$\times$ speedup over several hours of manual expert reporting~\cite{kla2023klarity,amat2023actionable}), and a $+$0.86 composite improvement in root cause reasoning quality (GPT-4o judge, 1--5 scale) from multi-modal fusion over an image-only baseline.
 
 Future work prioritises expansion of \semidataset{} to at least 5{,}000 real fab image-FA report pairs, which our fine-tuning experiments indicate is the minimum corpus size for stable QLoRA domain adaptation of a 7B-parameter VLM.
 Additional directions include expansion to SEM and optical micrograph modalities through industry partnerships, human evaluation studies comparing \semifa{} reports against expert-written FA reports, and exploration of parallel agent execution (SeverityClassifier and RecipeAdvisor can run concurrently) for further latency reduction.
@@ -633,6 +635,7 @@ The \semifa{} source code, training pipeline, and Colab notebook are publicly av
 
 This work is conducted as part of the M.Tech in Artificial Intelligence program at the Indian Institute of Technology Jodhpur.
 The author thanks the School of Artificial Intelligence \& Data Science, IIT Jodhpur, for computational resources and academic guidance.
+The author also thanks Keerthy Unnikrishnan for reviewing the abstract and introduction and providing feedback.
 
 %% ============================================================================
 %% BIBLIOGRAPHY
@@ -648,7 +651,7 @@ H. Liu, C. Li, Q. Wu, and Y. J. Lee, ``Visual instruction tuning,'' in \textit{P
 H. Liu, C. Li, Y. Li, B. Li, Y. Zhang, S. Shen, and Y. J. Lee, ``LLaVA-NeXT: Improved reasoning, OCR, and world knowledge,'' Jan. 2024. [Online]. Available: \url{https://llava-vl.github.io/blog/2024-01-30-llava-next/}
 
 \bibitem{openai2023gpt4v}
-OpenAI, ``GPT-4V(ision) system card,'' OpenAI, Tech. Rep., Sep. 2023.
+OpenAI, ``GPT-4V(ision) system card,'' OpenAI, Tech. Rep., Sep. 2023. [Online]. Available: \url{https://openai.com/research/gpt-4v-system-card}
 
 \bibitem{dai2023instructblip}
 W. Dai, J. Li, D. Li, A. M. H. Tiong, J. Zhao, W. Wang, B. Li, P. Fung, and S. Hoi, ``InstructBLIP: Towards general-purpose vision-language models with instruction tuning,'' in \textit{Proc. Advances in Neural Information Processing Systems (NeurIPS)}, vol.~36, 2024.
@@ -714,10 +717,16 @@ SEMI, ``SEMI E5 -- SEMI Equipment Communications Standard 2 Message Content (SEC
 SEMI, ``SEMI E37 -- High-Speed SECS Message Services (HSMS) Generic Services,'' SEMI Standards, 2023.
 
 \bibitem{kla2023klarity}
-KLA Corporation, ``KLARITY: Automated defect classification and process control,'' 2023. [Online]. Available: \url{https://www.kla.com}
+KLA Corporation, ``KLA-Tencor Launches KLARITY\textsuperscript{\textregistered} Defect Analysis System,'' KLA Investor Relations, 2023. [Online]. Available: \url{https://ir.kla.com/news-events/press-releases/detail/250/kla-tencor-launches-klarity-led-defect-analysis-system}
 
 \bibitem{amat2023actionable}
-Applied Materials, ``Actionable Insight: AI-powered process control,'' 2023. [Online]. Available: \url{https://www.appliedmaterials.com}
+Applied Materials, ``AIx: Actionable Insight Accelerator,'' 2023. [Online]. Available: \url{https://www.appliedmaterials.com/us/en/semiconductor/solutions-and-software/ai-x.html}
+
+\bibitem{infinitalab2023fa}
+Infinita Lab, ``Semiconductor Failure Analysis: Techniques and Standards,'' 2023. [Online]. Available: \url{https://infinitalab.com/blog/semiconductor-failure-analysis-techniques-standards/}
+
+\bibitem{azom2023fab}
+AZoM, ``Inspection and Failure Analysis as Strategic Investments in Semiconductor Fabs,'' 2023. [Online]. Available: \url{https://www.azom.com/article.aspx?ArticleID=25029}
 
 \bibitem{dettmers2023qlora}
 T. Dettmers, A. Pagnoni, A. Holtzman, and L. Zettlemoyer, ``QLoRA: Efficient finetuning of quantized LLMs,'' in \textit{Proc. Advances in Neural Information Processing Systems (NeurIPS)}, vol.~36, 2024.

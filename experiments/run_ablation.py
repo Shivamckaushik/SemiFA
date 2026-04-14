@@ -116,6 +116,13 @@ Respond ONLY with valid JSON in exactly this format (no markdown, no code fences
 
 
 # ── Synthetic test cases ──────────────────────────────────────────────────────
+# Equipment logs are formatted as SECS-II S5F1 (Alarm Report) and S6F11
+# (Collection Event Report) messages per SEMI E5/E37, as they would appear
+# in a host-side HSMS log.  Fields:
+#   S5F1  — AlarmID (hex), ALCD (0x81=set), AlarmCode, AlarmText, affected DVID
+#   S6F11 — DATAID, CEID (Collection Event ID + mnemonic), RPTID, DVID values
+# These are representative logs manually authored for the ablation study;
+# a live deployment would ingest identical message structures via HSMS.
 
 TEST_CASES: list[dict[str, Any]] = [
     {
@@ -128,10 +135,17 @@ TEST_CASES: list[dict[str, Any]] = [
             "with a single contact event. Die yield along the track is 0%."
         ),
         "equipment_logs": [
-            "2024-03-15 08:12:01 | chuck_pressure=2.8bar [ALARM: PRESSURE_HIGH]",
-            "2024-03-15 08:11:45 | wafer_handler_speed=0.45m/s",
-            "2024-03-15 08:11:30 | end_effector_vacuum=55mbar [ALARM: VAC_LOW]",
-            "2024-03-15 08:10:00 | wafer_id=W03 | lot_id=LOT-2024-031",
+            "[2024-03-15 08:10:00.003] <- S6F11 DATAID=1 CEID=1001(WAFER_LOAD_START)"
+            " RPT[RPTID=101]: DVID:wafer_id=W03 DVID:lot_id=LOT-2024-031 DVID:slot=03",
+            "[2024-03-15 08:11:28.774] <- S5F1 AlarmID=0x0031 ALCD=0x81"
+            " AlarmCode=VAC_LOW AlarmText=\"End-effector vacuum below LCL\""
+            " DVID:end_effector_vacuum=55mbar LCL=65mbar",
+            "[2024-03-15 08:11:44.912] <- S6F11 DATAID=2 CEID=1004(PROCESS_STATE_CHANGE)"
+            " RPT[RPTID=102]: DVID:wafer_handler_speed=0.45m/s"
+            " DVID:prev_state=TRANSFERRING DVID:curr_state=IDLE",
+            "[2024-03-15 08:12:01.238] <- S5F1 AlarmID=0x0066 ALCD=0x81"
+            " AlarmCode=PRESSURE_HIGH AlarmText=\"Chuck clamp pressure exceeded UCL\""
+            " DVID:chuck_pressure=2.8bar UCL=2.5bar",
         ],
         "similar_defects": [
             {"score": 0.93, "defect_type": "scratch",
@@ -150,10 +164,18 @@ TEST_CASES: list[dict[str, Any]] = [
             "fracture morphology. Adjacent die show delamination stress patterns."
         ),
         "equipment_logs": [
-            "2024-03-15 09:30:10 | dicing_blade_rpm=28500rpm",
-            "2024-03-15 09:29:55 | coolant_flow_rate=0.8L/min [ALARM: FLOW_LOW]",
-            "2024-03-15 09:29:40 | blade_wear_counter=42150 [ALARM: BLADE_WEAR]",
-            "2024-03-15 09:29:20 | chuck_vacuum=68mbar",
+            "[2024-03-15 09:29:18.001] <- S6F11 DATAID=5 CEID=2001(PROCESS_START)"
+            " RPT[RPTID=201]: DVID:wafer_id=W07 DVID:lot_id=LOT-2024-038"
+            " DVID:recipe_id=DICE_200MM_V2",
+            "[2024-03-15 09:29:38.447] <- S5F1 AlarmID=0x00A3 ALCD=0x81"
+            " AlarmCode=BLADE_WEAR AlarmText=\"Blade wear counter exceeded PM threshold\""
+            " DVID:blade_wear_counter=42150 PM_threshold=40000",
+            "[2024-03-15 09:29:53.882] <- S5F1 AlarmID=0x0055 ALCD=0x81"
+            " AlarmCode=COOLANT_FLOW_LOW AlarmText=\"Coolant flow rate below LCL\""
+            " DVID:coolant_flow_rate=0.8L/min LCL=1.2L/min",
+            "[2024-03-15 09:30:09.115] <- S6F11 DATAID=6 CEID=2004(PROCESS_STATE_CHANGE)"
+            " RPT[RPTID=202]: DVID:dicing_blade_rpm=28500"
+            " DVID:prev_state=CUTTING DVID:curr_state=PAUSED",
         ],
         "similar_defects": [
             {"score": 0.91, "defect_type": "edge_crack",
@@ -172,10 +194,17 @@ TEST_CASES: list[dict[str, Any]] = [
             "is non-uniform, denser near the wafer center."
         ),
         "equipment_logs": [
-            "2024-03-15 10:15:20 | cvd_chamber_pressure=4.2mTorr [ALARM: PRESSURE_SPIKE]",
-            "2024-03-15 10:14:55 | purge_gas_flow=12.5sccm",
-            "2024-03-15 10:14:40 | susceptor_temp=650C",
-            "2024-03-15 10:14:10 | chamber_clean_cycles=187 [ALARM: CLEAN_OVERDUE]",
+            "[2024-03-15 10:14:08.553] <- S6F11 DATAID=9 CEID=3001(PROCESS_START)"
+            " RPT[RPTID=301]: DVID:wafer_id=W11 DVID:lot_id=LOT-2024-044"
+            " DVID:recipe_id=CVD_SIO2_400NM",
+            "[2024-03-15 10:14:39.220] <- S5F1 AlarmID=0x00C1 ALCD=0x81"
+            " AlarmCode=CLEAN_OVERDUE AlarmText=\"Chamber dry-clean cycle count exceeded limit\""
+            " DVID:chamber_clean_cycles=187 limit=150",
+            "[2024-03-15 10:14:53.771] <- S6F11 DATAID=10 CEID=3002(PROCESS_DATA_REPORT)"
+            " RPT[RPTID=302]: DVID:susceptor_temp=650C DVID:purge_gas_flow=12.5sccm",
+            "[2024-03-15 10:15:19.644] <- S5F1 AlarmID=0x0078 ALCD=0x81"
+            " AlarmCode=PRESSURE_SPIKE AlarmText=\"CVD chamber pressure transient above UCL\""
+            " DVID:cvd_chamber_pressure=4.2mTorr UCL=3.5mTorr",
         ],
         "similar_defects": [
             {"score": 0.89, "defect_type": "particle_contamination",
@@ -194,10 +223,17 @@ TEST_CASES: list[dict[str, Any]] = [
             "spin-coat non-uniformity signature."
         ),
         "equipment_logs": [
-            "2024-03-15 11:05:30 | spin_speed=2200rpm [ALARM: SPEED_UNSTABLE]",
-            "2024-03-15 11:05:15 | resist_volume=1.8mL",
-            "2024-03-15 11:04:50 | ambient_humidity=62% [ALARM: HUMIDITY_HIGH]",
-            "2024-03-15 11:04:30 | exhaust_flow=145CFM",
+            "[2024-03-15 11:04:28.002] <- S6F11 DATAID=13 CEID=4001(PROCESS_START)"
+            " RPT[RPTID=401]: DVID:wafer_id=W15 DVID:lot_id=LOT-2024-051"
+            " DVID:recipe_id=SPIN_COAT_PR_248NM",
+            "[2024-03-15 11:04:49.338] <- S5F1 AlarmID=0x00D4 ALCD=0x81"
+            " AlarmCode=HUMIDITY_HIGH AlarmText=\"Track ambient humidity exceeded UCL\""
+            " DVID:ambient_humidity=62pct UCL=45pct",
+            "[2024-03-15 11:05:14.667] <- S5F1 AlarmID=0x00B2 ALCD=0x81"
+            " AlarmCode=SPEED_UNSTABLE AlarmText=\"Spin chuck RPM deviation exceeded tolerance\""
+            " DVID:spin_speed=2200rpm setpoint=2000rpm tolerance=50rpm",
+            "[2024-03-15 11:05:29.891] <- S6F11 DATAID=14 CEID=4002(PROCESS_DATA_REPORT)"
+            " RPT[RPTID=402]: DVID:resist_volume=1.8mL DVID:exhaust_flow=145CFM",
         ],
         "similar_defects": [
             {"score": 0.95, "defect_type": "ring_pattern",
@@ -216,10 +252,17 @@ TEST_CASES: list[dict[str, Any]] = [
             "metal layer thinning under SEM cross-section."
         ),
         "equipment_logs": [
-            "2024-03-15 12:20:10 | cmp_downforce=3.1psi [ALARM: FORCE_HIGH]",
-            "2024-03-15 12:19:55 | platen_speed=87rpm",
-            "2024-03-15 12:19:40 | slurry_flow=280mL/min",
-            "2024-03-15 12:19:20 | pad_condition_index=0.62 [ALARM: PAD_WORN]",
+            "[2024-03-15 12:19:17.004] <- S6F11 DATAID=17 CEID=5001(PROCESS_START)"
+            " RPT[RPTID=501]: DVID:wafer_id=W22 DVID:lot_id=LOT-2024-059"
+            " DVID:recipe_id=CMP_ILD_STEP1",
+            "[2024-03-15 12:19:38.553] <- S5F1 AlarmID=0x00E7 ALCD=0x81"
+            " AlarmCode=PAD_WORN AlarmText=\"CMP pad condition index below minimum\""
+            " DVID:pad_condition_index=0.62 minimum=0.75",
+            "[2024-03-15 12:19:54.219] <- S6F11 DATAID=18 CEID=5002(PROCESS_DATA_REPORT)"
+            " RPT[RPTID=502]: DVID:platen_speed=87rpm DVID:slurry_flow=280mL/min",
+            "[2024-03-15 12:20:09.882] <- S5F1 AlarmID=0x00F3 ALCD=0x81"
+            " AlarmCode=DOWNFORCE_HIGH AlarmText=\"CMP carrier downforce exceeded UCL\""
+            " DVID:cmp_downforce=3.1psi UCL=2.8psi",
         ],
         "similar_defects": [
             {"score": 0.92, "defect_type": "center_cluster",

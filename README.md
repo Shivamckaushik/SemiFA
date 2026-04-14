@@ -1,6 +1,6 @@
 # SemiFA: Agentic Multi-Modal Framework for Autonomous Semiconductor Failure Analysis
 
-**SemiFA** is a multi-modal agentic framework that autonomously generates structured semiconductor failure analysis (FA) reports from inspection images in under one minute — replacing a 2–4 hour manual engineering process.
+**SemiFA** is a multi-modal agentic framework that autonomously generates structured semiconductor failure analysis (FA) reports from inspection images in under one minute — replacing a manual expert review and reporting process that can consume several hours per case.
 
 > **Paper:** *"SemiFA: An Agentic Multi-Modal Framework for Autonomous Semiconductor Failure Analysis Report Generation"*
 > Shivam Chand Kaushik — School of Artificial Intelligence & Data Science, IIT Jodhpur
