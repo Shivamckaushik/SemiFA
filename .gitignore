@@ -234,9 +234,10 @@ data/mixedwm38/images/
 reports/output/
 colab/reports/
 *.pdf
-# Re-allow tracked PDFs (paper figures and compiled paper)
+# Re-allow tracked PDFs (paper figures, compiled paper, sample report)
 !paper/semifa_arxiv.pdf
 !paper/figures/*.pdf
+!reports/sample_fa_report.pdf
 
 # LaTeX build artifacts
 paper/*.aux

@@ -20,7 +20,7 @@ class MQTTIngestionClient:
 
     Expected message payload (JSON):
     {
-        "equipment_id": "KLA-T800-01",
+        "equipment_id": "EQ-INSP-01",
         "parameter": "chuck_temp",
         "value": 23.4,
         "unit": "°C",

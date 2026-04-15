@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 # ── Request ───────────────────────────────────────────────────────────────────
 
 class InspectionRequest(BaseModel):
-    equipment_id: str = Field(example="KLA-T800-01")
+    equipment_id: str = Field(example="EQ-INSP-01")
     lot_id: str = Field(example="LOT-2024-001")
     wafer_id: str = Field(example="W05")
     image_modality: str = Field(
