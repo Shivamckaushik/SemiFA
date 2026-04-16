@@ -5,6 +5,7 @@
 > **Paper:** *"SemiFA: An Agentic Multi-Modal Framework for Autonomous Semiconductor Failure Analysis Report Generation"*
 > Shivam Chand Kaushik — School of Artificial Intelligence & Data Science, IIT Jodhpur
 
+[![arXiv](https://img.shields.io/badge/arXiv-2604.13236-b31b1b.svg)](https://arxiv.org/abs/2604.13236)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Shivamckaushik/SemiFA/blob/main/colab/SemiFA_Reproducibility.ipynb)
 
 ---
@@ -237,17 +238,15 @@ python scripts/build_semifa_dataset.py
 If you use SemiFA or SemiFA-930, please cite:
 
 ```bibtex
-@article{kaushik2025semifa,
+@article{kaushik2026semifa,
   title     = {{SemiFA}: An Agentic Multi-Modal Framework for Autonomous
                Semiconductor Failure Analysis Report Generation},
   author    = {Kaushik, Shivam Chand},
-  journal   = {arXiv preprint},
-  year      = {2025},
-  note      = {School of Artificial Intelligence \& Data Science, IIT Jodhpur}
+  journal   = {arXiv preprint arXiv:2604.13236},
+  year      = {2026},
+  url       = {https://arxiv.org/abs/2604.13236}
 }
 ```
-
-*arXiv ID will be added upon publication.*
 
 ---
 
